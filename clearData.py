@@ -1,62 +1,82 @@
 import re
+import csv
 
-emoji_pos = ["😁","😍","😄","🙂"]
-emoji_neg = ["🤮","🤬","🙁","☹️","😡","😠","😤","😢","😭"]
+emoji_pos = ["😁", "😍", "😄", "🙂"]
+emoji_neg = ["🤮", "🤬", "🙁", "☹️", "😡", "😠", "😤", "😢", "😭"]
+
 
 def clean_text(text):
-    # Sur la base d'expressions régulières :
-    text = re.sub(r"(@[\w]+)","",text)        # Supprimer les mentions @
-    text = re.sub(r"(#[\w]+)","",text)        # Supprimer les #
-    text = re.sub(r"RT","",text)              # Supprimer les RT.
-    text = re.sub(r"https?://\S+","",text)    # Supprimer les liens http et https et ce qui les succédent.
+    # Supprimer les mentions, hashtags, RT et liens
+    text = re.sub(r"(@[\w]+)", "", text)
+    text = re.sub(r"(#[\w]+)", "", text)
+    text = re.sub(r"RT", "", text)
+    text = re.sub(r"https?://\S+", "", text)
+
+    # Supprimer les emojis
     for c in text:
         if c in emoji_pos or c in emoji_neg:
             text = text.replace(c, "")
-    text = text.strip()
-    return text
+
+    return text.strip()
+
 
 def clean_double(tweets):
-    temp = []   # tab temporaire pour stocker les id lus.
+    temp = []
     unique_tweets = []
     for tweet in tweets:
-        if tweet[1] not in temp: # Si on admet que les identifiants de tweet sont toujours en 2e position.
-            temp.append(tweet[1])  
+        if tweet[1] not in temp:  # On considère que l'ID est en position 1
+            temp.append(tweet[1])
             unique_tweets.append(tweet)
     return unique_tweets
 
-# Pour limiter le nombre de tweets Anglais sans utiliser de bibliothèque, 
-# on peut se baser sur quelques mots les plus couramment utilisé dans cette langue.
-# Et ainsi filtrer les phrases par rapport à ceux-ci.
 
-most_used_english_words = ["the","of","and","is","was","it","I","he"]
+most_used_english_words = ["the", "of", "and", "is", "was", "it", "I", "he"]
+
 
 def clean_english_tweets(tweets):
     not_english_tweets = []
     for tweet in tweets:
-        words = tweet[5].split(" ") # Si on admet que les messages de tweet sont toujours en 6e position.
+        words = tweet[5].split(" ")  # Le texte du tweet est en position 5
         find = False
         for word in words:
-            if word in most_used_english_words:
+            if word.lower() in most_used_english_words:
                 find = True
+                break
         if not find:
             not_english_tweets.append(tweet)
     return not_english_tweets
 
-tweets_test = [
-    ["4","3","Mon May 11 03:17:40 UTC 2009","kindle2","tpryan","@stellargirl I loooooooovvvvvveee my Kindle2. Not that the DX is cool, but the 2 is fantastic in its own right."],
-    ["4","3","Mon May 11 03:18:03 UTC 2009","kindle2","vcu451","Reading my kindle2...  Love it... Lee childs is good read."],
-    ["4","5","Mon May 11 03:18:54 UTC 2009","kindle2","chadfu","Ok, first assesment of the #kindle2 ...it fucking rocks!!!"],
-    ["4","6","Mon May 11 03:19:00 UTC 2009","kindle2","mark","Ok, c'est vraiment cool !"],
-    ["0","10","Mon May 11 05:19:00 UTC 2009","kindle2","johndoe","No 😡, c'est trop grand, c'était mieux avec #kindle2."]
-]
 
-cleaned_tweets = []
+input_file = "tweetspje.csv"
+
+tweets_test = []
+
+# Lecture du fichier CSV
+with open(input_file, newline="", encoding="utf-8") as csvfile:
+    reader = csv.reader(csvfile)
+    # Si ton CSV a un entête, la sauter
+    next(reader, None)
+    for row in reader:
+        # Chaque ligne devient un tweet
+        # Vérifie que le CSV a exactement 6 colonnes comme ton exemple
+        if len(row) >= 6:
+            tweets_test.append(row[:6])
+
+
+# Nettoyage
 cleaned_tweets = clean_double(tweets_test)
-cleaned_tweets = clean_english_tweets(cleaned_tweets)
+#cleaned_tweets = clean_english_tweets(cleaned_tweets)
 cleaned_tweets = [
     [clean_text(elt) for elt in tweet]
     for tweet in cleaned_tweets
 ]
-print(cleaned_tweets)
 
-# Vérifier que la plupart des tweets sont français (algo de calcul du nombre de lettre et analyse pour déterminer la langue)
+# Écriture dans un CSV
+with open("nettoye.csv", "w", newline="", encoding="utf-8") as csvfile:
+    writer = csv.writer(csvfile)
+    # Éventuellement écrire l'entête
+    writer.writerow(["Col1", "ID", "Date", "Produit", "Utilisateur", "Texte"])
+    # Écrire les lignes nettoyées
+    writer.writerows(cleaned_tweets)
+
+print("Fichier 'nettoye.csv' créé avec succès !")

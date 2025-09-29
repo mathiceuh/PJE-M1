@@ -1,3 +1,5 @@
+import re
+import csv
 import streamlit as sl
 
 sl.title("Premier pas - StreamLit")
@@ -7,9 +9,10 @@ val = sl.number_input("Entrer un nombre :")
 if val:
     sl.success(val)
 
-    with open('tweets.csv', 'r', encoding="utf-8") as file, open('tweets_cleaned.csv', 'w',newline='', encoding="utf-8") as file_out:
-    reader = csv.reader(file, delimiter=",")
-    writer = csv.writer(file_out, delimiter=',')
+    with open('tweets.csv', 'r', encoding="utf-8") as file, \
+            open('tweets_cleaned.csv', 'w', newline='', encoding="utf-8") as file_out:
+        reader = csv.reader(file, delimiter=",")
+        writer = csv.writer(file_out, delimiter=',')
     for row in reader:
         # GERER LES DOUBLONS
 
