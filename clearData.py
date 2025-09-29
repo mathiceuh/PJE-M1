@@ -47,7 +47,7 @@ def clean_english_tweets(tweets):
     return not_english_tweets
 
 
-input_file = "tweetspje.csv"
+input_file = "tweetpje.csv"
 
 tweets_test = []
 
@@ -65,7 +65,7 @@ with open(input_file, newline="", encoding="utf-8") as csvfile:
 
 # Nettoyage
 cleaned_tweets = clean_double(tweets_test)
-#cleaned_tweets = clean_english_tweets(cleaned_tweets)
+cleaned_tweets = clean_english_tweets(cleaned_tweets)
 cleaned_tweets = [
     [clean_text(elt) for elt in tweet]
     for tweet in cleaned_tweets
